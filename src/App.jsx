@@ -62,7 +62,7 @@ function App() {
     try {
       if (useSemanticSearch && searchService && indexService) {
         // AI semantic search - load first 10 results and generate embeddings
-        const indexResults = indexService.searchIndex(query).slice(0, 10)
+        const indexResults = (await indexService.searchIndex(query)).slice(0, 10)
 
         setLoadingStatus('Loading articles for AI search...')
 
@@ -82,9 +82,9 @@ function App() {
         const semanticResults = await searchService.semanticSearch(query, 10)
         setSearchResults(semanticResults)
       } else {
-        // Simple index-based search
+        // Simple index-based search (now uses Wikipedia search API for full access)
         if (indexService) {
-          const results = indexService.searchIndex(query)
+          const results = await indexService.searchIndex(query)
           const articlesFromResults = results.map(r => ({
             id: r.id,
             title: r.title,
