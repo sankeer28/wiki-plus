@@ -13,39 +13,39 @@ export class ArticleLoader {
     try {
       console.log(`Fetching article: ${title}`)
 
-      // Use Wikipedia API to fetch article content
-      const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+      // Use Wikipedia API to fetch FULL article content (not just summary)
+      const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`
 
       const response = await fetch(apiUrl)
 
       if (!response.ok) {
         // Try Simple English Wikipedia instead
-        const simpleApiUrl = `https://simple.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+        const simpleApiUrl = `https://simple.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`
         const simpleResponse = await fetch(simpleApiUrl)
 
         if (!simpleResponse.ok) {
           throw new Error('Article not found')
         }
 
-        const data = await simpleResponse.json()
+        const htmlContent = await simpleResponse.text()
         const article = {
-          title: data.title || title,
-          content: this.formatWikipediaContent(data),
-          timestamp: data.timestamp || new Date().toISOString(),
-          url: data.content_urls?.desktop?.page
+          title: title,
+          content: this.formatHTMLContent(htmlContent),
+          timestamp: new Date().toISOString(),
+          url: `https://simple.wikipedia.org/wiki/${encodeURIComponent(title)}`
         }
 
         this.cache.set(title, article)
         return article
       }
 
-      const data = await response.json()
+      const htmlContent = await response.text()
 
       const article = {
-        title: data.title || title,
-        content: this.formatWikipediaContent(data),
-        timestamp: data.timestamp || new Date().toISOString(),
-        url: data.content_urls?.desktop?.page
+        title: title,
+        content: this.formatHTMLContent(htmlContent),
+        timestamp: new Date().toISOString(),
+        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`
       }
 
       // Cache the article
@@ -54,9 +54,9 @@ export class ArticleLoader {
 
       return article
     } catch (error) {
-      console.error(`Error loading article "${title}":`, error)
+      console.error(`Error loading article "${title}" from API:`, error)
 
-      // Return error article
+      // Return error article if loading fails
       return {
         title: title,
         content: `Unable to load article "${title}". The article may not exist or there was a network error. Please try again or search for a different article.`,
@@ -65,30 +65,47 @@ export class ArticleLoader {
     }
   }
 
-  formatWikipediaContent(data) {
-    let content = ''
+  formatHTMLContent(htmlContent) {
+    // Create a temporary DOM element to parse HTML
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(htmlContent, 'text/html')
 
-    // Add extract (summary)
-    if (data.extract) {
-      content += data.extract + '\n\n'
-    }
+    // Remove unwanted elements
+    const selectorsToRemove = [
+      'script',
+      'style',
+      '.mw-editsection',
+      '.reference',
+      '.mw-references-wrap',
+      '.navbox',
+      '.infobox',
+      '.thumb',
+      'sup.reference'
+    ]
 
-    // Add description if available
-    if (data.description) {
-      content += `Description: ${data.description}\n\n`
-    }
+    selectorsToRemove.forEach(selector => {
+      doc.querySelectorAll(selector).forEach(el => el.remove())
+    })
 
-    // Add type if available
-    if (data.type) {
-      content += `Type: ${data.type}\n\n`
-    }
+    // Get the main content
+    const body = doc.body
+    let textContent = ''
 
-    // Add link to full article
-    if (data.content_urls?.desktop?.page) {
-      content += `\n\nRead more: ${data.content_urls.desktop.page}`
-    }
+    // Extract text from paragraphs and headers
+    body.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li').forEach(el => {
+      const text = el.textContent.trim()
+      if (text) {
+        if (el.tagName.startsWith('H')) {
+          textContent += `\n\n## ${text}\n\n`
+        } else if (el.tagName === 'LI') {
+          textContent += `• ${text}\n`
+        } else {
+          textContent += `${text}\n\n`
+        }
+      }
+    })
 
-    return content || 'No content available for this article.'
+    return textContent.trim() || 'No content available for this article.'
   }
 
   clearCache() {

@@ -49,15 +49,39 @@ export class IndexSearchService {
     }
   }
 
-  searchIndex(query) {
+  async searchIndex(query) {
     if (!query || query.trim() === '') return []
 
-    const searchTerm = query.toLowerCase()
-    const results = this.index
-      .filter(item => item.title.toLowerCase().includes(searchTerm))
-      .slice(0, 50) // Limit to 50 results
+    // First try local index if loaded
+    if (this.isIndexLoaded && this.index.length > 0) {
+      const searchTerm = query.toLowerCase()
+      const localResults = this.index
+        .filter(item => item.title.toLowerCase().includes(searchTerm))
+        .slice(0, 50)
 
-    return results
+      if (localResults.length > 0) {
+        return localResults
+      }
+    }
+
+    // Fallback to Wikipedia search API for full Wikipedia access
+    try {
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=50&namespace=0&format=json&origin=*`
+      const response = await fetch(searchUrl)
+      const data = await response.json()
+
+      // OpenSearch API returns: [query, [titles], [descriptions], [urls]]
+      const titles = data[1] || []
+      return titles.map((title, idx) => ({
+        id: idx + 1,
+        title: title,
+        pageId: null,
+        offset: null
+      }))
+    } catch (error) {
+      console.error('Error searching Wikipedia:', error)
+      return []
+    }
   }
 
   async loadArticleContent(title) {
