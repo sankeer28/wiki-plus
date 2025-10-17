@@ -23,7 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Large Wikipedia data files (don't upload to Vercel)
+# Large Wikipedia XML file - too large for GitHub (1.4GB > 100MB limit)
 public/data/*.xml
-# We can include the index file if needed - it's only 19MB
-# public/data/*.txt
+# Index file is included (19MB)
