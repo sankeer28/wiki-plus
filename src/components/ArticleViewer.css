@@ -156,6 +156,7 @@
 .article-body img[src*="Wikibooks-logo.svg"],
 .article-body img[src*="Wikiversity_logo"],
 .article-body img[src*="Creative_Commons"],
+.article-body img[src*="Question_book"],
 .infobox img[src*="Edit-clear.svg"],
 .infobox img[src*="edit-clear.svg"],
 .infobox img[src*="Papapishu-Lab-icon"],
@@ -164,7 +165,8 @@
 .infobox img[src*="Commons-logo.svg"],
 .infobox img[src*="Wikibooks-logo.svg"],
 .infobox img[src*="Wikiversity_logo"],
-.infobox img[src*="Creative_Commons"] {
+.infobox img[src*="Creative_Commons"],
+.infobox img[src*="Question_book"] {
   display: none !important;
 }
 
