@@ -91,32 +91,43 @@ function App() {
 
     setIsLoading(true)
     try {
-      if (useSemanticSearch && searchService && indexService) {
-        // AI semantic search - load first 10 results and generate embeddings
-        const indexResults = (await indexService.searchIndex(query)).slice(0, 10)
+      // Always get traditional search results first
+      const indexResults = await indexService.searchIndex(query)
 
-        setLoadingStatus('Loading articles for AI search...')
+      if (useSemanticSearch && searchService && indexResults.length > 0) {
+        // AI semantic search - enhance traditional results with semantic ranking
+        // Use lightweight data (title + description) for fast processing
+        setLoadingStatus('Analyzing semantic relevance...')
 
-        // Load full content for top results
-        const articlesWithContent = []
-        for (const result of indexResults) {
-          const fullArticle = await indexService.loadArticleContent(result.title)
-          articlesWithContent.push(fullArticle)
-        }
+        // Create lightweight articles from search results (no need to load full content)
+        const lightweightArticles = indexResults.map(result => ({
+          id: result.id,
+          title: result.title,
+          content: result.description || result.title, // Use description if available
+          timestamp: new Date().toISOString()
+        }))
 
-        setLoadingStatus('Generating embeddings...')
+        // Index these lightweight articles for semantic search
+        await searchService.indexArticles(lightweightArticles)
 
-        // Index these articles for semantic search
-        await searchService.indexArticles(articlesWithContent)
+        // Perform semantic search to get relevance scores
+        const semanticResults = await searchService.semanticSearch(query, 50)
 
-        // Perform semantic search
-        const semanticResults = await searchService.semanticSearch(query, 10)
-        setSearchResults(semanticResults)
+        // Convert to preview format with relevance scores
+        const rankedResults = semanticResults.map(article => ({
+          id: article.id,
+          title: article.title,
+          content: article.content || 'Click to view full article',
+          timestamp: new Date().toISOString(),
+          isPreview: true,
+          score: article.score
+        }))
+
+        setSearchResults(rankedResults)
       } else {
-        // Simple index-based search (now uses Wikipedia search API for full access)
+        // Simple index-based search (keyword matching only)
         if (indexService) {
-          const results = await indexService.searchIndex(query)
-          const articlesFromResults = results.map(r => ({
+          const articlesFromResults = indexResults.map(r => ({
             id: r.id,
             title: r.title,
             content: 'Click to view article details...',

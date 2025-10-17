@@ -72,9 +72,11 @@ export class IndexSearchService {
 
       // OpenSearch API returns: [query, [titles], [descriptions], [urls]]
       const titles = data[1] || []
+      const descriptions = data[2] || []
       return titles.map((title, idx) => ({
         id: idx + 1,
         title: title,
+        description: descriptions[idx] || '',
         pageId: null,
         offset: null
       }))
