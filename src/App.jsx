@@ -42,6 +42,15 @@ function App() {
 
         setLoadingStatus('Ready!')
         console.log('Initialization complete!')
+
+        // Check if URL has an article parameter
+        const urlParams = new URLSearchParams(window.location.search)
+        const articleTitle = urlParams.get('article')
+        if (articleTitle && idxService) {
+          // Load the article from URL
+          const fullArticle = await idxService.loadArticleContent(decodeURIComponent(articleTitle))
+          setSelectedArticle(fullArticle)
+        }
       } catch (error) {
         console.error('Initialization error:', error)
         setLoadingStatus(`Error: ${error.message}`)
@@ -103,15 +112,24 @@ function App() {
     }
   }
 
+  const updateURL = (title) => {
+    // Update URL with article title
+    const url = new URL(window.location)
+    url.searchParams.set('article', encodeURIComponent(title))
+    window.history.pushState({}, '', url)
+  }
+
   const handleArticleSelect = async (article) => {
     if (article.isPreview && indexService) {
       // Load full article content
       setIsLoading(true)
       const fullArticle = await indexService.loadArticleContent(article.title)
       setSelectedArticle(fullArticle)
+      updateURL(article.title)
       setIsLoading(false)
     } else {
       setSelectedArticle(article)
+      updateURL(article.title)
     }
   }
 
@@ -121,9 +139,30 @@ function App() {
       setIsLoading(true)
       const fullArticle = await indexService.loadArticleContent(title)
       setSelectedArticle(fullArticle)
+      updateURL(title)
       setIsLoading(false)
     }
   }
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const articleTitle = urlParams.get('article')
+
+      if (articleTitle && indexService) {
+        setIsLoading(true)
+        const fullArticle = await indexService.loadArticleContent(decodeURIComponent(articleTitle))
+        setSelectedArticle(fullArticle)
+        setIsLoading(false)
+      } else {
+        setSelectedArticle(null)
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [indexService])
 
   if (isInitializing) {
     return (

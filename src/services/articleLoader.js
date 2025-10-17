@@ -91,7 +91,12 @@ export class ArticleLoader {
 
     // Process all relevant content elements
     body.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, ul, ol, figure, .thumb, .infobox, img').forEach(el => {
-      // Skip if element is inside another element we'll process
+      // Skip if element is inside an infobox (infobox handles its own images)
+      if (el.closest('.infobox') && !el.classList.contains('infobox')) {
+        return
+      }
+
+      // Skip if IMG is inside figure or thumb (they'll be processed by their parent)
       if (el.tagName === 'IMG' && el.closest('figure, .thumb')) {
         return
       }

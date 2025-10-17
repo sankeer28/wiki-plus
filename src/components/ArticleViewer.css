@@ -146,6 +146,66 @@
   line-height: 1.5;
 }
 
+/* Hide Wikipedia UI icons that shouldn't appear */
+.article-body img[src*="Edit-clear.svg"],
+.article-body img[src*="edit-clear.svg"],
+.article-body img[src*="Papapishu-Lab-icon"],
+.article-body img[src*="Crystal_energy.svg"],
+.article-body img[src*="Wiktionary-logo"],
+.article-body img[src*="Commons-logo.svg"],
+.article-body img[src*="Wikibooks-logo.svg"],
+.article-body img[src*="Wikiversity_logo"],
+.article-body img[src*="Creative_Commons"],
+.infobox img[src*="Edit-clear.svg"],
+.infobox img[src*="edit-clear.svg"],
+.infobox img[src*="Papapishu-Lab-icon"],
+.infobox img[src*="Crystal_energy.svg"],
+.infobox img[src*="Wiktionary-logo"],
+.infobox img[src*="Commons-logo.svg"],
+.infobox img[src*="Wikibooks-logo.svg"],
+.infobox img[src*="Wikiversity_logo"],
+.infobox img[src*="Creative_Commons"] {
+  display: none !important;
+}
+
+/* Math formula images (from Wikimedia) - invert for dark theme */
+.article-body img[src*="wikimedia.org/api/rest_v1/media/math"],
+.article-body img[alt*="displaystyle"],
+.infobox img[src*="wikimedia.org/api/rest_v1/media/math"],
+.infobox img[alt*="displaystyle"] {
+  filter: invert(1) hue-rotate(180deg);
+  background: transparent;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+/* Transparent PNG/SVG diagrams - add subtle background and slightly increase brightness */
+.article-body img[src$=".svg"],
+.article-body img[src*=".svg/"],
+.article-body img[src*="thumb"][src$=".png"],
+.infobox img[src$=".svg"],
+.infobox img[src*=".svg/"],
+.infobox img[src*="thumb"][src$=".png"] {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 6px;
+  mix-blend-mode: lighten;
+}
+
+/* All images get slight brightness boost on dark theme */
+.article-body img,
+.infobox img {
+  filter: brightness(1.1) contrast(0.95);
+}
+
+/* Override for math formulas to keep full inversion */
+.article-body img[src*="wikimedia.org/api/rest_v1/media/math"],
+.article-body img[alt*="displaystyle"],
+.infobox img[src*="wikimedia.org/api/rest_v1/media/math"],
+.infobox img[alt*="displaystyle"] {
+  filter: invert(1) hue-rotate(180deg) brightness(1);
+}
+
 /* Infobox */
 .infobox {
   float: right;
@@ -155,7 +215,11 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   width: 280px;
+  max-width: 280px;
   font-size: 0.875rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .infobox-images {
@@ -173,6 +237,7 @@
 .infobox-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .infobox-table tr {
@@ -190,12 +255,17 @@
   color: var(--text-primary);
   vertical-align: top;
   width: 40%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .infobox-table td {
   padding: 8px 0 8px 8px;
   color: var(--text-secondary);
   vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 0;
 }
 
 /* Lists */
