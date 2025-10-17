@@ -108,3 +108,146 @@
 .article-viewer::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
+
+/* Wiki Links */
+.article-body .wiki-link {
+  color: #3b82f6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.article-body .wiki-link:hover {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* Images */
+.article-image {
+  margin: 24px 0;
+  max-width: 100%;
+  text-align: center;
+}
+
+.article-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+.article-image figcaption {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Infobox */
+.infobox {
+  float: right;
+  margin: 0 0 16px 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  width: 280px;
+  font-size: 0.875rem;
+}
+
+.infobox-images {
+  margin-bottom: 16px;
+}
+
+.infobox-images img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+.infobox-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.infobox-table tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.infobox-table tr:last-child {
+  border-bottom: none;
+}
+
+.infobox-table th {
+  text-align: left;
+  padding: 8px 8px 8px 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  vertical-align: top;
+  width: 40%;
+}
+
+.infobox-table td {
+  padding: 8px 0 8px 8px;
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+/* Lists */
+.article-body ul,
+.article-body ol {
+  margin-bottom: 20px;
+  padding-left: 24px;
+}
+
+.article-body li {
+  margin-bottom: 8px;
+  font-size: 0.9375rem;
+}
+
+/* Headings */
+.article-body h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 32px;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.article-body h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 24px;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.article-body h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 20px;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+/* Responsive design for infobox */
+@media (max-width: 768px) {
+  .infobox {
+    float: none;
+    margin: 24px 0;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .article-content {
+    padding: 32px 24px;
+  }
+}

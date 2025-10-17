@@ -70,16 +70,13 @@ export class ArticleLoader {
     const parser = new DOMParser()
     const doc = parser.parseFromString(htmlContent, 'text/html')
 
-    // Remove unwanted elements
+    // Remove only truly unwanted elements (keep images and infoboxes)
     const selectorsToRemove = [
       'script',
       'style',
       '.mw-editsection',
-      '.reference',
       '.mw-references-wrap',
       '.navbox',
-      '.infobox',
-      '.thumb',
       'sup.reference'
     ]
 
@@ -89,23 +86,185 @@ export class ArticleLoader {
 
     // Get the main content
     const body = doc.body
-    let textContent = ''
+    const contentElements = []
+    const images = []
 
-    // Extract text from paragraphs and headers
-    body.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li').forEach(el => {
-      const text = el.textContent.trim()
-      if (text) {
-        if (el.tagName.startsWith('H')) {
-          textContent += `\n\n## ${text}\n\n`
-        } else if (el.tagName === 'LI') {
-          textContent += `• ${text}\n`
-        } else {
-          textContent += `${text}\n\n`
+    // Process all relevant content elements
+    body.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, ul, ol, figure, .thumb, .infobox, img').forEach(el => {
+      // Skip if element is inside another element we'll process
+      if (el.tagName === 'IMG' && el.closest('figure, .thumb')) {
+        return
+      }
+
+      if (el.tagName === 'IMG') {
+        // Standalone image
+        const imgData = this.extractImageData(el)
+        if (imgData) {
+          images.push(imgData)
+          contentElements.push({
+            type: 'image',
+            data: imgData
+          })
+        }
+      } else if (el.classList.contains('thumb') || el.tagName === 'FIGURE') {
+        // Image with caption
+        const imgData = this.extractImageFromFigure(el)
+        if (imgData) {
+          images.push(imgData)
+          contentElements.push({
+            type: 'image',
+            data: imgData
+          })
+        }
+      } else if (el.classList.contains('infobox')) {
+        // Infobox (contains images and structured data)
+        const infoboxData = this.extractInfobox(el)
+        if (infoboxData) {
+          contentElements.push({
+            type: 'infobox',
+            data: infoboxData
+          })
+        }
+      } else if (el.tagName.startsWith('H')) {
+        // Headers
+        const text = el.textContent.trim()
+        if (text) {
+          contentElements.push({
+            type: 'heading',
+            level: parseInt(el.tagName[1]),
+            text: text,
+            html: this.processLinks(el)
+          })
+        }
+      } else if (el.tagName === 'P') {
+        // Paragraphs
+        const text = el.textContent.trim()
+        if (text) {
+          contentElements.push({
+            type: 'paragraph',
+            text: text,
+            html: this.processLinks(el)
+          })
+        }
+      } else if (el.tagName === 'UL' || el.tagName === 'OL') {
+        // Lists
+        const items = Array.from(el.querySelectorAll('li')).map(li => ({
+          text: li.textContent.trim(),
+          html: this.processLinks(li)
+        }))
+        if (items.length > 0) {
+          contentElements.push({
+            type: el.tagName === 'UL' ? 'unordered-list' : 'ordered-list',
+            items: items
+          })
         }
       }
     })
 
-    return textContent.trim() || 'No content available for this article.'
+    return {
+      elements: contentElements,
+      images: images
+    }
+  }
+
+  extractImageData(img) {
+    let src = img.getAttribute('src') || img.getAttribute('data-src')
+    if (!src) return null
+
+    // Convert protocol-relative URLs to https
+    if (src.startsWith('//')) {
+      src = 'https:' + src
+    }
+
+    // Use higher resolution image if available
+    const srcset = img.getAttribute('srcset')
+    if (srcset) {
+      const sources = srcset.split(',').map(s => s.trim().split(' '))
+      const highRes = sources.find(s => s[1] && parseInt(s[1]) >= 500)
+      if (highRes) {
+        src = highRes[0].startsWith('//') ? 'https:' + highRes[0] : highRes[0]
+      }
+    }
+
+    return {
+      src: src,
+      alt: img.getAttribute('alt') || '',
+      title: img.getAttribute('title') || '',
+      width: img.getAttribute('width') || 'auto',
+      height: img.getAttribute('height') || 'auto'
+    }
+  }
+
+  extractImageFromFigure(figure) {
+    const img = figure.querySelector('img')
+    if (!img) return null
+
+    const imgData = this.extractImageData(img)
+    if (!imgData) return null
+
+    // Get caption if available
+    const caption = figure.querySelector('figcaption, .thumbcaption')
+    if (caption) {
+      imgData.caption = caption.textContent.trim()
+    }
+
+    return imgData
+  }
+
+  extractInfobox(infobox) {
+    const rows = []
+    const images = []
+
+    // Extract images from infobox
+    infobox.querySelectorAll('img').forEach(img => {
+      const imgData = this.extractImageData(img)
+      if (imgData) {
+        images.push(imgData)
+      }
+    })
+
+    // Extract key-value pairs
+    infobox.querySelectorAll('tr').forEach(tr => {
+      const th = tr.querySelector('th')
+      const td = tr.querySelector('td')
+
+      if (th && td) {
+        rows.push({
+          label: th.textContent.trim(),
+          value: td.textContent.trim()
+        })
+      }
+    })
+
+    return {
+      images: images,
+      rows: rows
+    }
+  }
+
+  processLinks(element) {
+    // Clone the element to avoid modifying the original
+    const clone = element.cloneNode(true)
+
+    // Process all links to make them internal wiki links
+    clone.querySelectorAll('a').forEach(link => {
+      const href = link.getAttribute('href')
+      if (href && href.startsWith('./')) {
+        // Wikipedia internal link format: ./Article_Name
+        const title = decodeURIComponent(href.substring(2).replace(/_/g, ' '))
+        link.setAttribute('data-wiki-link', title)
+        link.setAttribute('href', '#')
+        link.classList.add('wiki-link')
+      } else if (href && !href.startsWith('http')) {
+        // Relative link
+        const title = decodeURIComponent(href.replace(/^\/wiki\//, '').replace(/_/g, ' '))
+        link.setAttribute('data-wiki-link', title)
+        link.setAttribute('href', '#')
+        link.classList.add('wiki-link')
+      }
+    })
+
+    return clone.innerHTML
   }
 
   clearCache() {

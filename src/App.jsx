@@ -15,6 +15,7 @@ function App() {
   const [loadingStatus, setLoadingStatus] = useState('Initializing...')
   const [searchService, setSearchService] = useState(null)
   const [indexService, setIndexService] = useState(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     // Initialize app with index-based loading
@@ -114,6 +115,16 @@ function App() {
     }
   }
 
+  const handleWikiLinkClick = async (title) => {
+    // Load the linked article
+    if (indexService) {
+      setIsLoading(true)
+      const fullArticle = await indexService.loadArticleContent(title)
+      setSelectedArticle(fullArticle)
+      setIsLoading(false)
+    }
+  }
+
   if (isInitializing) {
     return (
       <div className="app-container">
@@ -141,7 +152,7 @@ function App() {
       </div>
 
       <div className="content-container">
-        <div className="articles-section">
+        <div className={`articles-section ${isSidebarCollapsed ? 'collapsed' : ''}`}>
           <ArticleList
             articles={searchResults.length > 0 ? searchResults : articles}
             onArticleSelect={handleArticleSelect}
@@ -150,7 +161,29 @@ function App() {
         </div>
 
         <div className="viewer-section">
-          <ArticleViewer article={selectedArticle} />
+          <button
+            className="sidebar-toggle"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {isSidebarCollapsed ? (
+                <path d="M9 18l6-6-6-6" />
+              ) : (
+                <path d="M15 18l-6-6 6-6" />
+              )}
+            </svg>
+          </button>
+          <ArticleViewer article={selectedArticle} onWikiLinkClick={handleWikiLinkClick} />
         </div>
       </div>
     </div>
