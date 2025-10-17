@@ -229,7 +229,7 @@ function App() {
           <img src="/logo.svg" alt="Wiki-Plus Logo" className="app-logo" />
           <div className="header-text">
             <h1>Wiki-Plus</h1>
-            <p className="subtitle">AI-Powered Knowledge Discovery</p>
+            <p className="subtitle">Knowledge Discovery</p>
           </div>
         </div>
         <div className="header-actions">
