@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Large Wikipedia XML file - too large for GitHub (1.4GB > 100MB limit)
-public/data/*.xml
-# Index file is included (19MB)
+# Large Wikipedia XML file has been split into chunks (each ~95MB)
+# Original file excluded, chunks are included
+public/data/simplewiki-*-pages-articles-multistream.xml
+# Index file and chunk files are included

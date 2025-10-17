@@ -1,6 +1,9 @@
+import { XMLLoader } from './xmlLoader'
+
 export class ArticleLoader {
   constructor() {
     this.cache = new Map()
+    this.xmlLoader = new XMLLoader()
   }
 
   async loadArticleContent(title) {
@@ -54,9 +57,23 @@ export class ArticleLoader {
 
       return article
     } catch (error) {
-      console.error(`Error loading article "${title}":`, error)
+      console.error(`Error loading article "${title}" from API:`, error)
 
-      // Return error article
+      // Try to load from local XML chunks as fallback
+      try {
+        console.log(`Attempting to load "${title}" from local XML chunks...`)
+        const xmlArticle = await this.xmlLoader.findArticleByTitle(title)
+
+        if (xmlArticle) {
+          console.log(`Found "${title}" in local XML chunks`)
+          this.cache.set(title, xmlArticle)
+          return xmlArticle
+        }
+      } catch (xmlError) {
+        console.error(`Error loading from XML chunks:`, xmlError)
+      }
+
+      // Return error article if both methods fail
       return {
         title: title,
         content: `Unable to load article "${title}". The article may not exist or there was a network error. Please try again or search for a different article.`,
