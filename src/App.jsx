@@ -7,6 +7,7 @@ import History from './components/History'
 import ThemeSelector from './components/ThemeSelector'
 import { SemanticSearchService } from './services/semanticSearch'
 import { IndexSearchService } from './services/indexSearch'
+import { MultiSourceSearchService } from './services/multiSourceSearch'
 import { HistoryService } from './services/historyService'
 import { ThemeService } from './services/themeService'
 
@@ -19,6 +20,7 @@ function App() {
   const [loadingStatus, setLoadingStatus] = useState('Initializing...')
   const [searchService, setSearchService] = useState(null)
   const [indexService, setIndexService] = useState(null)
+  const [multiSourceService] = useState(() => new MultiSourceSearchService())
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false)
@@ -91,20 +93,21 @@ function App() {
 
     setIsLoading(true)
     try {
-      // Always get traditional search results first
-      const indexResults = await indexService.searchIndex(query)
+      // Search multiple sources (Wikipedia + Wikidata)
+      setLoadingStatus('Searching multiple sources...')
+      const multiSourceResults = await multiSourceService.searchAllSources(query)
 
-      if (useSemanticSearch && searchService && indexResults.length > 0) {
-        // AI semantic search - enhance traditional results with semantic ranking
-        // Use lightweight data (title + description) for fast processing
+      if (useSemanticSearch && searchService && multiSourceResults.length > 0) {
+        // AI semantic search - enhance multi-source results with semantic ranking
         setLoadingStatus('Analyzing semantic relevance...')
 
-        // Create lightweight articles from search results (no need to load full content)
-        const lightweightArticles = indexResults.map(result => ({
+        // Create lightweight articles from search results
+        const lightweightArticles = multiSourceResults.map(result => ({
           id: result.id,
           title: result.title,
-          content: result.description || result.title, // Use description if available
-          timestamp: new Date().toISOString()
+          content: result.description || result.title,
+          timestamp: new Date().toISOString(),
+          source: result.source
         }))
 
         // Index these lightweight articles for semantic search
@@ -113,29 +116,34 @@ function App() {
         // Perform semantic search to get relevance scores
         const semanticResults = await searchService.semanticSearch(query, 50)
 
-        // Convert to preview format with relevance scores
-        const rankedResults = semanticResults.map(article => ({
-          id: article.id,
-          title: article.title,
-          content: article.content || 'Click to view full article',
-          timestamp: new Date().toISOString(),
-          isPreview: true,
-          score: article.score
-        }))
+        // Convert to preview format with relevance scores and source tags
+        const rankedResults = semanticResults.map(article => {
+          const originalResult = multiSourceResults.find(r => r.id === article.id)
+          return {
+            id: article.id,
+            title: article.title,
+            content: article.content || 'Click to view full article',
+            timestamp: new Date().toISOString(),
+            isPreview: true,
+            score: article.score,
+            source: originalResult?.source || 'Wikipedia',
+            sourceColor: originalResult?.sourceColor || '#000000'
+          }
+        })
 
         setSearchResults(rankedResults)
       } else {
-        // Simple index-based search (keyword matching only)
-        if (indexService) {
-          const articlesFromResults = indexResults.map(r => ({
-            id: r.id,
-            title: r.title,
-            content: 'Click to view article details...',
-            timestamp: new Date().toISOString(),
-            isPreview: true
-          }))
-          setSearchResults(articlesFromResults)
-        }
+        // Simple multi-source search (keyword matching only)
+        const articlesFromResults = multiSourceResults.map(r => ({
+          id: r.id,
+          title: r.title,
+          content: r.description || 'Click to view article details...',
+          timestamp: new Date().toISOString(),
+          isPreview: true,
+          source: r.source,
+          sourceColor: r.sourceColor
+        }))
+        setSearchResults(articlesFromResults)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -152,10 +160,10 @@ function App() {
   }
 
   const handleArticleSelect = async (article) => {
-    if (article.isPreview && indexService) {
-      // Load full article content
+    if (article.isPreview) {
+      // Load full article content from appropriate source
       setIsLoading(true)
-      const fullArticle = await indexService.loadArticleContent(article.title)
+      const fullArticle = await multiSourceService.loadArticleContent(article.title, article.source || 'Wikipedia')
       setSelectedArticle(fullArticle)
       updateURL(article.title)
       historyService.addToHistory({ title: article.title, url: fullArticle.url })

@@ -27,7 +27,14 @@ function ArticleList({ articles, onArticleSelect, isSearchResult }) {
               className="article-item"
               onClick={() => onArticleSelect(article)}
             >
-              <h3 className="article-title">{article.title}</h3>
+              <div className="article-item-header">
+                <h3 className="article-title">{article.title}</h3>
+                {article.source && (
+                  <span className="source-badge" style={{ borderColor: article.sourceColor }}>
+                    {article.source}
+                  </span>
+                )}
+              </div>
               <p className="article-preview">
                 {article.content?.substring(0, 150)}...
               </p>
