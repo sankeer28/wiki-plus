@@ -57,7 +57,8 @@ body {
 }
 
 .theme-btn,
-.history-btn {
+.history-btn,
+.sources-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -73,7 +74,8 @@ body {
 }
 
 .theme-btn:hover,
-.history-btn:hover {
+.history-btn:hover,
+.sources-btn:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
   border-color: var(--accent-primary);
@@ -81,7 +83,8 @@ body {
 }
 
 .theme-btn svg,
-.history-btn svg {
+.history-btn svg,
+.sources-btn svg {
   flex-shrink: 0;
 }
 

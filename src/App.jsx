@@ -5,6 +5,7 @@ import ArticleList from './components/ArticleList'
 import ArticleViewer from './components/ArticleViewer'
 import History from './components/History'
 import ThemeSelector from './components/ThemeSelector'
+import SourceSelector from './components/SourceSelector'
 import { SemanticSearchService } from './services/semanticSearch'
 import { IndexSearchService } from './services/indexSearch'
 import { MultiSourceSearchService } from './services/multiSourceSearch'
@@ -24,6 +25,7 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false)
+  const [isSourceSelectorOpen, setIsSourceSelectorOpen] = useState(false)
   const [historyService] = useState(() => new HistoryService())
   const [themeService] = useState(() => new ThemeService())
   const [currentTheme, setCurrentTheme] = useState('dark')
@@ -127,6 +129,7 @@ function App() {
             isPreview: true,
             score: article.score,
             source: originalResult?.source || 'Wikipedia',
+            sourceKey: originalResult?.sourceKey || 'wikipedia',
             sourceColor: originalResult?.sourceColor || '#000000'
           }
         })
@@ -141,6 +144,7 @@ function App() {
           timestamp: new Date().toISOString(),
           isPreview: true,
           source: r.source,
+          sourceKey: r.sourceKey,
           sourceColor: r.sourceColor
         }))
         setSearchResults(articlesFromResults)
@@ -163,10 +167,25 @@ function App() {
     if (article.isPreview) {
       // Load full article content from appropriate source
       setIsLoading(true)
-      const fullArticle = await multiSourceService.loadArticleContent(article.title, article.source || 'Wikipedia')
-      setSelectedArticle(fullArticle)
-      updateURL(article.title)
-      historyService.addToHistory({ title: article.title, url: fullArticle.url })
+      const fullArticle = await multiSourceService.loadArticleContent(
+        article.title,
+        article.source || 'Wikipedia',
+        article.sourceKey
+      )
+
+      if (fullArticle) {
+        setSelectedArticle(fullArticle)
+        updateURL(article.title)
+        historyService.addToHistory({ title: article.title, url: fullArticle.url })
+      } else {
+        // Article failed to load - show error
+        setSelectedArticle({
+          title: article.title,
+          content: `Unable to load article "${article.title}" from ${article.source}. This article may not be available or may have a different format.`,
+          timestamp: new Date().toISOString(),
+          source: article.source
+        })
+      }
       setIsLoading(false)
     } else {
       setSelectedArticle(article)
@@ -241,6 +260,17 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
+          <button
+            className="sources-btn"
+            onClick={() => setIsSourceSelectorOpen(true)}
+            aria-label="Select sources"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Sources
+          </button>
           <button
             className="theme-btn"
             onClick={() => setIsThemeSelectorOpen(true)}
@@ -329,6 +359,16 @@ function App() {
         onThemeChange={handleThemeChange}
         isOpen={isThemeSelectorOpen}
         onClose={() => setIsThemeSelectorOpen(false)}
+      />
+
+      <SourceSelector
+        multiSourceService={multiSourceService}
+        isOpen={isSourceSelectorOpen}
+        onClose={() => setIsSourceSelectorOpen(false)}
+        onSourcesChange={() => {
+          // Optionally trigger a re-search when sources change
+          console.log('Sources updated')
+        }}
       />
     </div>
   )
