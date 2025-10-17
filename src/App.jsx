@@ -3,8 +3,10 @@ import './App.css'
 import SearchBar from './components/SearchBar'
 import ArticleList from './components/ArticleList'
 import ArticleViewer from './components/ArticleViewer'
+import History from './components/History'
 import { SemanticSearchService } from './services/semanticSearch'
 import { IndexSearchService } from './services/indexSearch'
+import { HistoryService } from './services/historyService'
 
 function App() {
   const [articles, setArticles] = useState([])
@@ -16,6 +18,8 @@ function App() {
   const [searchService, setSearchService] = useState(null)
   const [indexService, setIndexService] = useState(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [historyService] = useState(() => new HistoryService())
 
   useEffect(() => {
     // Initialize app with index-based loading
@@ -126,15 +130,28 @@ function App() {
       const fullArticle = await indexService.loadArticleContent(article.title)
       setSelectedArticle(fullArticle)
       updateURL(article.title)
+      historyService.addToHistory({ title: article.title, url: fullArticle.url })
       setIsLoading(false)
     } else {
       setSelectedArticle(article)
       updateURL(article.title)
+      historyService.addToHistory({ title: article.title, url: article.url })
     }
   }
 
   const handleWikiLinkClick = async (title) => {
     // Load the linked article
+    if (indexService) {
+      setIsLoading(true)
+      const fullArticle = await indexService.loadArticleContent(title)
+      setSelectedArticle(fullArticle)
+      updateURL(title)
+      historyService.addToHistory({ title: title, url: fullArticle.url })
+      setIsLoading(false)
+    }
+  }
+
+  const handleHistoryArticleSelect = async (title) => {
     if (indexService) {
       setIsLoading(true)
       const fullArticle = await indexService.loadArticleContent(title)
@@ -187,6 +204,17 @@ function App() {
             <p className="subtitle">AI-Powered Knowledge Discovery</p>
           </div>
         </div>
+        <button
+          className="history-btn"
+          onClick={() => setIsHistoryOpen(true)}
+          aria-label="View history"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          History
+        </button>
       </header>
 
       <div className="controls-container">
@@ -231,6 +259,13 @@ function App() {
           <ArticleViewer article={selectedArticle} onWikiLinkClick={handleWikiLinkClick} />
         </div>
       </div>
+
+      <History
+        historyService={historyService}
+        onArticleSelect={handleHistoryArticleSelect}
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+      />
     </div>
   )
 }
