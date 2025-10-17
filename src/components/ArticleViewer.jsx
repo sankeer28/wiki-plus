@@ -1,9 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './ArticleViewer.css'
 import ImageLightbox from './ImageLightbox'
 
 function ArticleViewer({ article, onWikiLinkClick }) {
   const [lightboxImage, setLightboxImage] = useState(null)
+  const viewerRef = useRef(null)
+
+  // Scroll to top when article changes
+  useEffect(() => {
+    if (article && viewerRef.current) {
+      viewerRef.current.scrollTop = 0
+    }
+  }, [article])
+
   if (!article) {
     return (
       <div className="article-viewer empty">
@@ -164,7 +173,7 @@ function ArticleViewer({ article, onWikiLinkClick }) {
 
   return (
     <>
-      <div className="article-viewer" onClick={handleLinkClick}>
+      <div className="article-viewer" ref={viewerRef} onClick={handleLinkClick}>
         <article className="article-content">
           <header className="article-header">
             <h1 className="article-title">{article.title}</h1>
