@@ -1,8 +1,8 @@
-# MiniWiki - Vercel Deployment Guide
+# Wiki-Plus - Vercel Deployment Guide
 
 ## ✅ Ready for Vercel Deployment
 
-Your MiniWiki app is now configured for Vercel deployment!
+Your Wiki-Plus app is now configured for Vercel deployment!
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ Your MiniWiki app is now configured for Vercel deployment!
    cd wiki-app
    git init
    git add .
-   git commit -m "Initial commit - MiniWiki"
+   git commit -m "Initial commit - Wiki-Plus"
    git branch -M main
    git remote add origin YOUR_GITHUB_REPO_URL
    git push -u origin main
@@ -73,7 +73,7 @@ Your MiniWiki app is now configured for Vercel deployment!
 ### Configuration Files:
 - `vercel.json` - Vercel deployment config
 - `.gitignore` - Excludes large files and build artifacts
-- `package.json` - Updated with project name "miniwiki"
+- `package.json` - Updated with project name "wiki-plus"
 
 ## Post-Deployment
 
@@ -117,4 +117,4 @@ For Vercel-specific issues, check:
 - [Vercel Documentation](https://vercel.com/docs)
 - [Vite on Vercel](https://vercel.com/docs/frameworks/vite)
 
-Enjoy your deployed MiniWiki! 🚀
+Enjoy your deployed Wiki-Plus! 🚀

@@ -41,6 +41,29 @@ body {
   flex-shrink: 0;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.app-logo:hover {
+  transform: scale(1.05) rotate(5deg);
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+}
+
 .app-header h1 {
   font-size: 1.75rem;
   font-weight: 600;
@@ -145,6 +168,25 @@ body {
   background: var(--bg-primary);
 }
 
+.loading-logo {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
 .loading-container h1 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -194,7 +236,36 @@ body {
     padding: 20px 24px;
   }
 
+  .app-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-title {
+    gap: 12px;
+  }
+
   .controls-container {
     padding: 12px 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .app-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .loading-logo {
+    width: 60px;
+    height: 60px;
   }
 }

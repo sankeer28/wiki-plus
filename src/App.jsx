@@ -129,7 +129,8 @@ function App() {
     return (
       <div className="app-container">
         <div className="loading-container">
-          <h1>MiniWiki</h1>
+          <img src="/logo.svg" alt="Wiki-Plus Logo" className="loading-logo" />
+          <h1>Wiki-Plus</h1>
           <p>{loadingStatus}</p>
           <div className="loader"></div>
         </div>
@@ -140,8 +141,13 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>MiniWiki</h1>
-        <p className="subtitle">AI-Powered Knowledge Discovery</p>
+        <div className="header-title">
+          <img src="/logo.svg" alt="Wiki-Plus Logo" className="app-logo" />
+          <div className="header-text">
+            <h1>Wiki-Plus</h1>
+            <p className="subtitle">AI-Powered Knowledge Discovery</p>
+          </div>
+        </div>
       </header>
 
       <div className="controls-container">

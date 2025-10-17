@@ -5,7 +5,7 @@ function ArticleViewer({ article, onWikiLinkClick }) {
     return (
       <div className="article-viewer empty">
         <div className="empty-state">
-          <h2>Welcome to Custom Wikipedia</h2>
+          <h2>Welcome to Wiki Plus</h2>
           <p>Select an article from the list to view its content</p>
           <p>Use the search bar above to find articles with AI-powered semantic search</p>
         </div>
