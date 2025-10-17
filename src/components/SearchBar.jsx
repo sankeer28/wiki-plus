@@ -3,11 +3,10 @@ import './SearchBar.css'
 
 function SearchBar({ onSearch, isLoading }) {
   const [query, setQuery] = useState('')
-  const [useAISearch, setUseAISearch] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSearch(query, useAISearch)
+    onSearch(query, true) // Always use AI search
   }
 
   const handleQueryChange = (e) => {
@@ -33,22 +32,6 @@ function SearchBar({ onSearch, isLoading }) {
           >
             {isLoading ? 'Searching...' : 'Search'}
           </button>
-        </div>
-
-        <div className="search-options">
-          <label className="ai-search-toggle">
-            <input
-              type="checkbox"
-              checked={useAISearch}
-              onChange={(e) => setUseAISearch(e.target.checked)}
-            />
-            <span className="toggle-label">
-              Use AI Semantic Search
-            </span>
-          </label>
-          {useAISearch && (
-            <span className="ai-badge">AI Powered</span>
-          )}
         </div>
       </form>
     </div>
