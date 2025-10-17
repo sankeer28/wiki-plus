@@ -25,4 +25,5 @@ dist-ssr
 
 # Large Wikipedia data files (don't upload to Vercel)
 public/data/*.xml
-public/data/*.txt
+# We can include the index file if needed - it's only 19MB
+# public/data/*.txt
