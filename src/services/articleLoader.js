@@ -181,18 +181,26 @@ export class ArticleLoader {
       src = 'https:' + src
     }
 
-    // Use higher resolution image if available
-    const srcset = img.getAttribute('srcset')
-    if (srcset) {
-      const sources = srcset.split(',').map(s => s.trim().split(' '))
-      const highRes = sources.find(s => s[1] && parseInt(s[1]) >= 500)
-      if (highRes) {
-        src = highRes[0].startsWith('//') ? 'https:' + highRes[0] : highRes[0]
+    // Keep original thumbnail for page display
+    let thumbnailSrc = src
+    let fullSrc = src
+
+    // Try to extract full resolution URL from Wikipedia image URL pattern
+    // Wikipedia thumbnail URLs follow pattern: /thumb/.../<filename>/<width>px-<filename>
+    // Original is at: /.../<filename>
+    if (src.includes('/thumb/')) {
+      // Extract the original URL by removing /thumb/ and everything after the filename
+      const thumbMatch = src.match(/\/thumb\/(.*?)\/([^\/]+)\/\d+px-/)
+      if (thumbMatch) {
+        const path = thumbMatch[1]
+        const filename = thumbMatch[2]
+        fullSrc = src.split('/thumb/')[0] + '/' + path + '/' + filename
       }
     }
 
     return {
-      src: src,
+      src: thumbnailSrc,
+      fullSrc: fullSrc,
       alt: img.getAttribute('alt') || '',
       title: img.getAttribute('title') || '',
       width: img.getAttribute('width') || 'auto',

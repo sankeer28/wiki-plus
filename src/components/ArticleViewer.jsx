@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import './ArticleViewer.css'
+import ImageLightbox from './ImageLightbox'
 
 function ArticleViewer({ article, onWikiLinkClick }) {
+  const [lightboxImage, setLightboxImage] = useState(null)
   if (!article) {
     return (
       <div className="article-viewer empty">
@@ -11,6 +14,10 @@ function ArticleViewer({ article, onWikiLinkClick }) {
         </div>
       </div>
     )
+  }
+
+  const handleImageClick = (imageData) => {
+    setLightboxImage(imageData)
   }
 
   const handleLinkClick = (e) => {
@@ -96,6 +103,12 @@ function ArticleViewer({ article, onWikiLinkClick }) {
                   alt={element.data.alt}
                   title={element.data.title}
                   loading="lazy"
+                  onClick={() => handleImageClick({
+                    src: element.data.fullSrc || element.data.src,
+                    alt: element.data.alt,
+                    caption: element.data.caption
+                  })}
+                  style={{ cursor: 'pointer' }}
                 />
                 {element.data.caption && (
                   <figcaption>{element.data.caption}</figcaption>
@@ -115,6 +128,12 @@ function ArticleViewer({ article, onWikiLinkClick }) {
                         alt={img.alt}
                         title={img.title}
                         loading="lazy"
+                        onClick={() => handleImageClick({
+                          src: img.fullSrc || img.src,
+                          alt: img.alt,
+                          caption: img.caption
+                        })}
+                        style={{ cursor: 'pointer' }}
                       />
                     ))}
                   </div>
@@ -144,35 +163,44 @@ function ArticleViewer({ article, onWikiLinkClick }) {
   }
 
   return (
-    <div className="article-viewer" onClick={handleLinkClick}>
-      <article className="article-content">
-        <header className="article-header">
-          <h1 className="article-title">{article.title}</h1>
-          {article.timestamp && (
-            <div className="article-meta">
-              <span>Last updated: {new Date(article.timestamp).toLocaleDateString()}</span>
-            </div>
+    <>
+      <div className="article-viewer" onClick={handleLinkClick}>
+        <article className="article-content">
+          <header className="article-header">
+            <h1 className="article-title">{article.title}</h1>
+            {article.timestamp && (
+              <div className="article-meta">
+                <span>Last updated: {new Date(article.timestamp).toLocaleDateString()}</span>
+              </div>
+            )}
+          </header>
+
+          <div className="article-body">
+            {renderContent()}
+          </div>
+
+          {article.categories && article.categories.length > 0 && (
+            <footer className="article-footer">
+              <div className="categories">
+                <strong>Categories:</strong>
+                {article.categories.map((category, index) => (
+                  <span key={index} className="category-tag">
+                    {category}
+                  </span>
+                ))}
+              </div>
+            </footer>
           )}
-        </header>
+        </article>
+      </div>
 
-        <div className="article-body">
-          {renderContent()}
-        </div>
-
-        {article.categories && article.categories.length > 0 && (
-          <footer className="article-footer">
-            <div className="categories">
-              <strong>Categories:</strong>
-              {article.categories.map((category, index) => (
-                <span key={index} className="category-tag">
-                  {category}
-                </span>
-              ))}
-            </div>
-          </footer>
-        )}
-      </article>
-    </div>
+      {lightboxImage && (
+        <ImageLightbox
+          image={lightboxImage}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
+    </>
   )
 }
 
