@@ -342,7 +342,11 @@ function App() {
               )}
             </svg>
           </button>
-          <ArticleViewer article={selectedArticle} onWikiLinkClick={handleWikiLinkClick} />
+          <ArticleViewer
+            article={selectedArticle}
+            onWikiLinkClick={handleWikiLinkClick}
+            onTopicClick={(topic) => handleSearch(topic, true)}
+          />
         </div>
       </div>
 

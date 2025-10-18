@@ -2,9 +2,66 @@ import { useState, useEffect, useRef } from 'react'
 import './ArticleViewer.css'
 import ImageLightbox from './ImageLightbox'
 
-function ArticleViewer({ article, onWikiLinkClick }) {
+const allTopics = [
+  { title: 'Quantum Computing', icon: '⚛️', color: '#3b82f6' },
+  { title: 'Ancient Egypt', icon: '🏛️', color: '#f59e0b' },
+  { title: 'Machine Learning', icon: '🤖', color: '#8b5cf6' },
+  { title: 'Space Exploration', icon: '🚀', color: '#06b6d4' },
+  { title: 'Renaissance Art', icon: '🎨', color: '#ec4899' },
+  { title: 'Climate Change', icon: '🌍', color: '#10b981' },
+  { title: 'Cryptocurrency', icon: '💰', color: '#f97316' },
+  { title: 'Black Holes', icon: '🌌', color: '#6366f1' },
+  { title: 'DNA Structure', icon: '🧬', color: '#14b8a6' },
+  { title: 'Philosophy', icon: '💭', color: '#a855f7' },
+  { title: 'World War II', icon: '⚔️', color: '#ef4444' },
+  { title: 'Shakespeare', icon: '📜', color: '#8b5cf6' },
+  { title: 'Artificial Intelligence', icon: '🧠', color: '#3b82f6' },
+  { title: 'The Universe', icon: '✨', color: '#6366f1' },
+  { title: 'Evolution', icon: '🦎', color: '#22c55e' },
+  { title: 'Roman Empire', icon: '🏛️', color: '#dc2626' },
+  { title: 'Photosynthesis', icon: '🌱', color: '#16a34a' },
+  { title: 'String Theory', icon: '🎻', color: '#8b5cf6' },
+  { title: 'Ocean Depths', icon: '🌊', color: '#0891b2' },
+  { title: 'Human Brain', icon: '🧠', color: '#ec4899' },
+  { title: 'Solar System', icon: '☀️', color: '#f59e0b' },
+  { title: 'Medieval Times', icon: '🏰', color: '#78716c' },
+  { title: 'Dinosaurs', icon: '🦖', color: '#84cc16' },
+  { title: 'Great Pyramids', icon: '📐', color: '#d97706' },
+  { title: 'Greek Mythology', icon: '⚡', color: '#eab308' },
+  { title: 'Relativity Theory', icon: '⏱️', color: '#6366f1' },
+  { title: 'Neuroscience', icon: '🔬', color: '#db2777' },
+  { title: 'Mars Exploration', icon: '🔴', color: '#dc2626' },
+  { title: 'Genetics', icon: '🧬', color: '#059669' },
+  { title: 'Vikings', icon: '⚔️', color: '#0369a1' },
+  { title: 'Plate Tectonics', icon: '🌋', color: '#b91c1c' },
+  { title: 'Impressionism', icon: '🖼️', color: '#818cf8' },
+  { title: 'Jazz Music', icon: '🎺', color: '#c026d3' },
+  { title: 'Amazon Rainforest', icon: '🌴', color: '#15803d' },
+  { title: 'Particle Physics', icon: '⚛️', color: '#7c3aed' },
+  { title: 'Classical Music', icon: '🎼', color: '#4f46e5' },
+  { title: 'French Revolution', icon: '🗽', color: '#2563eb' },
+  { title: 'Coral Reefs', icon: '🪸', color: '#0891b2' },
+  { title: 'Astronomy', icon: '🔭', color: '#1e40af' },
+  { title: 'Industrial Revolution', icon: '⚙️', color: '#475569' },
+  { title: 'Nuclear Physics', icon: '☢️', color: '#fbbf24' },
+  { title: 'Renaissance Literature', icon: '📖', color: '#7c2d12' },
+  { title: 'Quantum Mechanics', icon: '⚡', color: '#6366f1' },
+  { title: 'Ancient Greece', icon: '🏺', color: '#0284c7' },
+  { title: 'Climate Science', icon: '🌡️', color: '#059669' },
+  { title: 'Beethoven', icon: '🎹', color: '#581c87' },
+  { title: 'Archaeology', icon: '⛏️', color: '#92400e' },
+  { title: 'Volcanology', icon: '🌋', color: '#dc2626' },
+  { title: 'Deep Sea', icon: '🐋', color: '#0c4a6e' },
+  { title: 'Microbiology', icon: '🦠', color: '#15803d' }
+]
+
+function ArticleViewer({ article, onWikiLinkClick, onTopicClick }) {
   const [lightboxImage, setLightboxImage] = useState(null)
   const viewerRef = useRef(null)
+  const [visibleTopics, setVisibleTopics] = useState([])
+  const [fadingOutIndices, setFadingOutIndices] = useState(new Set())
+  const [topicCount, setTopicCount] = useState(15)
+  const usedTopicsRef = useRef(new Set())
 
   // Scroll to top when article changes
   useEffect(() => {
@@ -13,13 +70,142 @@ function ArticleViewer({ article, onWikiLinkClick }) {
     }
   }, [article])
 
+  // Calculate how many topics to show based on screen size
+  useEffect(() => {
+    const calculateTopicCount = () => {
+      const width = window.innerWidth
+      const height = window.innerHeight
+
+      // Estimate based on typical topic bubble size (~150px width, ~50px height with gaps)
+      const bubblesPerRow = Math.floor(width / 170)
+      const maxRows = Math.floor((height * 0.4) / 60) // Use 40% of height for topics
+      const count = Math.min(Math.max(bubblesPerRow * maxRows, 10), 30) // Min 10, max 30
+
+      setTopicCount(count)
+    }
+
+    calculateTopicCount()
+    window.addEventListener('resize', calculateTopicCount)
+    return () => window.removeEventListener('resize', calculateTopicCount)
+  }, [])
+
+  // Initialize visible topics on mount
+  useEffect(() => {
+    if (topicCount === 0) return
+
+    // Shuffle and select initial topics
+    const shuffled = [...allTopics].sort(() => Math.random() - 0.5)
+    const initial = shuffled.slice(0, topicCount)
+    setVisibleTopics(initial)
+    // Track which topics are currently visible
+    initial.forEach(topic => usedTopicsRef.current.add(topic.title))
+  }, [topicCount])
+
+  // Randomly replace one topic every 3-5 seconds
+  useEffect(() => {
+    if (article) return // Don't run if article is showing
+
+    const getRandomInterval = () => {
+      // Random interval between 3-5 seconds
+      return 3000 + Math.random() * 2000
+    }
+
+    const scheduleNextReplacement = () => {
+      const interval = getRandomInterval()
+
+      return setTimeout(() => {
+        setVisibleTopics(prev => {
+          if (prev.length === 0) return prev
+
+          // Pick a random index to replace
+          const randomIndex = Math.floor(Math.random() * prev.length)
+
+          // Mark it as fading out
+          setFadingOutIndices(curr => new Set(curr).add(randomIndex))
+
+          // Find a new topic that hasn't been shown recently
+          const availableTopics = allTopics.filter(
+            topic => !usedTopicsRef.current.has(topic.title)
+          )
+
+          // If all topics have been used, reset and allow reuse
+          if (availableTopics.length === 0) {
+            usedTopicsRef.current.clear()
+            prev.forEach(topic => usedTopicsRef.current.add(topic.title))
+          }
+
+          const topicsToChooseFrom = availableTopics.length > 0 ? availableTopics : allTopics
+          const newTopic = topicsToChooseFrom[Math.floor(Math.random() * topicsToChooseFrom.length)]
+
+          // After fade out animation completes (600ms), replace the topic
+          setTimeout(() => {
+            setVisibleTopics(current => {
+              const updated = [...current]
+              // Remove old topic from used set
+              usedTopicsRef.current.delete(updated[randomIndex].title)
+              // Add new topic
+              updated[randomIndex] = newTopic
+              usedTopicsRef.current.add(newTopic.title)
+              return updated
+            })
+
+            // Clear the fading out state
+            setFadingOutIndices(curr => {
+              const next = new Set(curr)
+              next.delete(randomIndex)
+              return next
+            })
+          }, 600)
+
+          return prev
+        })
+
+        // Schedule the next replacement
+        scheduleNextReplacement()
+      }, interval)
+    }
+
+    const timeoutId = scheduleNextReplacement()
+
+    return () => clearTimeout(timeoutId)
+  }, [article])
+
+  const handleTopicClick = (topic) => {
+    // Call the parent's onTopicClick handler with the topic title
+    if (onTopicClick) {
+      onTopicClick(topic.title)
+    }
+  }
+
   if (!article) {
     return (
       <div className="article-viewer empty">
-        <div className="empty-state">
-          <h2>Welcome to Wiki Plus</h2>
-          <p>Select an article from the list to view its content</p>
-          <p>Use the search bar above to find articles with AI-powered semantic search</p>
+        <div className="welcome-screen">
+          <div className="welcome-header">
+            <h1 className="welcome-title">Wiki Plus</h1>
+            <p className="welcome-subtitle">Search across 9 sources with AI-powered semantic search</p>
+          </div>
+
+          <div className="floating-topics">
+            {visibleTopics.map((topic, index) => (
+              <div
+                key={`${topic.title}-${index}`}
+                className={`topic-bubble ${fadingOutIndices.has(index) ? 'fade-out' : ''}`}
+                style={{
+                  '--delay': `${index * 0.1}s`,
+                  '--duration': `${15 + (index % 5) * 2}s`,
+                  '--color': topic.color,
+                  '--index': index
+                }}
+                onClick={() => handleTopicClick(topic)}
+              >
+                <span className="topic-icon">{topic.icon}</span>
+                <span className="topic-title">{topic.title}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="welcome-hint">Click any topic above or search for anything</p>
         </div>
       </div>
     )
