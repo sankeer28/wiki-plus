@@ -1,5 +1,4 @@
-# Wiki-Plus: Custom Wikipedia with AI-Powered Semantic Search
-
+# Wiki-Plus: Custom Wikipedia 
 React-based Wikipedia browser with AI-powered semantic search  using Transformers.js and PGlite.
 
 ## Features
