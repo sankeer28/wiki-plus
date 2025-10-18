@@ -42,6 +42,14 @@ function App() {
     setCurrentTheme(themeId)
   }
 
+  const handleLogoClick = () => {
+    // Clear search results and selected article to return to home
+    setSearchResults([])
+    setSelectedArticle(null)
+    // Clear URL parameters
+    window.history.pushState({}, '', window.location.pathname)
+  }
+
   useEffect(() => {
     // Initialize app with index-based loading
     const initializeApp = async () => {
@@ -252,7 +260,7 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <div className="header-title">
+        <div className="header-title" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
           <img src="/logo.svg" alt="Wiki-Plus Logo" className="app-logo" />
           <div className="header-text">
             <h1>Wiki-Plus</h1>
