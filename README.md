@@ -1,5 +1,6 @@
 # Wiki-Plus: Custom Wikipedia 
 React-based Wikipedia browser with AI-powered semantic search  using Transformers.js and PGlite.
+![Recording 2025-11-30 155645](https://github.com/user-attachments/assets/f8863ea0-421b-49c7-bfa0-d384b730b4bd)
 
 ## Features
 - **AI-Powered Semantic Search**: Uses Transformers.js to run local AI embeddings for intelligent article search
